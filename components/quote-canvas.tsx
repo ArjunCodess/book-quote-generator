@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import Image from 'next/image'
 
 interface QuoteCanvasProps {
   text: string[]
@@ -24,65 +25,64 @@ export default function QuoteCanvas({
 }: QuoteCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
+  // This effect handles drawing text on the canvas
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || !imageLoaded) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-
-    setIsLoading(true)
 
     // Set canvas size
     canvas.width = 800
     canvas.height = 800
 
-    // Load and draw background image
-    const img = new Image()
-    img.crossOrigin = "anonymous"
-    img.src = backgroundImage
+    // Make canvas transparent initially
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
     
-    img.onload = () => {
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Draw background
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-      
-      // Setup text properties
-      ctx.font = `${fontSize}px serif`
-      ctx.fillStyle = color
-      
-      // Save context state
-      ctx.save()
-      
-      // Move to position and rotate
-      ctx.translate(xAxis, yAxis)
-      ctx.rotate((rotation * Math.PI) / 180)
-      
-      // Draw each line of text
-      text.forEach((line, index) => {
-        ctx.fillText(line, 0, index * (fontSize * 1.5))
-      })
-      
-      // Restore context state
-      ctx.restore()
-      setIsLoading(false)
-    }
-
-    img.onerror = () => {
-      setIsLoading(false)
-    }
-  }, [text, fontSize, xAxis, yAxis, rotation, color, backgroundImage])
+    // Setup text properties
+    ctx.font = `${fontSize}px serif`
+    ctx.fillStyle = color
+    
+    // Save context state
+    ctx.save()
+    
+    // Move to position and rotate
+    ctx.translate(xAxis, yAxis)
+    ctx.rotate((rotation * Math.PI) / 180)
+    
+    // Draw each line of text
+    text.forEach((line, index) => {
+      ctx.fillText(line, 0, index * (fontSize * 1.5))
+    })
+    
+    // Restore context state
+    ctx.restore()
+    setIsLoading(false)
+  }, [text, fontSize, xAxis, yAxis, rotation, color, imageLoaded])
 
   return (
     <div className="relative w-full aspect-square">
       <div id="quote-canvas-container" className="absolute inset-0">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full"
-        />
+        {/* Background Image */}
+        <div className="relative w-full h-full">
+          <Image
+            src={backgroundImage}
+            alt="Quote background"
+            fill
+            className="object-cover"
+            onLoad={() => setImageLoaded(true)}
+            priority
+          />
+          {/* Text Overlay Canvas */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ backgroundColor: 'transparent' }}
+          />
+        </div>
       </div>
 
       {isLoading && (
