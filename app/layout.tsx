@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Book Quote Generator - Make Beautiful Quote Covers",
     description: "Make beautiful quote covers. Super easy!",
-    images: ["/public/image.png"],
+    images: ["/image.png"],
   },
 };
 
