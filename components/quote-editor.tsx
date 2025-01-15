@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Wand2, ChevronDown, ChevronRight, RotateCw } from "lucide-react";
 import { Template } from "@/lib/templates";
 import { generateQuote } from "@/lib/gemini";
+import GenerateDialog from "./generate-dialog";
 
 interface QuoteSettings {
   text: string[];
@@ -30,7 +31,7 @@ export default function QuoteEditor({
   selectedTemplate,
 }: QuoteEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
   const handleTextChange = (value: string) => {
     onSettingsChange({
@@ -39,19 +40,12 @@ export default function QuoteEditor({
     });
   };
 
-  const handleGenerateClick = async () => {
-    try {
-      setIsGenerating(true);
-      const generatedQuote = await generateQuote();
-      onSettingsChange({
-        ...settings,
-        text: generatedQuote,
-      });
-    } catch (error) {
-      console.error('Failed to generate quote:', error);
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleGenerate = async (prompt?: string) => {
+    const generatedQuote = await generateQuote(prompt);
+    onSettingsChange({
+      ...settings,
+      text: generatedQuote,
+    });
   };
 
   return (
@@ -73,11 +67,10 @@ export default function QuoteEditor({
             variant="outline" 
             size="sm" 
             className="shadow-sm"
-            onClick={handleGenerateClick}
-            disabled={isGenerating}
+            onClick={() => setShowGenerateDialog(true)}
           >
-            <Wand2 className={isGenerating ? "w-4 h-4 mr-2 animate-spin" : "w-4 h-4 mr-2"} />
-            {isGenerating ? "Generating..." : "Generate with AI"}
+            <Wand2 className="w-4 h-4 mr-2" />
+            Generate with AI
           </Button>
         </div>
 
@@ -267,6 +260,12 @@ export default function QuoteEditor({
           )}
         </div>
       </div>
+
+      <GenerateDialog 
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+        onGenerate={handleGenerate}
+      />
     </div>
   );
 }
